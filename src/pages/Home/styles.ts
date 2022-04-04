@@ -15,4 +15,18 @@ export const Container = styled.div`
         margin: 1rem;
         width: auto;
     }
+
+    .loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content:center;
+        height: 60vh;
+
+        span {
+            color: var(--red);
+            font-weight: 600;
+            font-size: 18px;
+        }
+    }
 `

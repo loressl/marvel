@@ -1,14 +1,18 @@
+import { SyntheticEvent } from "react"
 import { Container } from "./styles"
 
 interface CardProps {
-    thumbail: string
+    id: number
+    name: string
+    image: string
+    onClickCharacter: (event: SyntheticEvent,id: number) => void
 }
 
-export const Card = ({ thumbail }: CardProps) => {
+export const Card = ({id, name, image, onClickCharacter }: CardProps) => {
     return(
-        <Container image={thumbail}>
+        <Container onClick={(event:SyntheticEvent) => onClickCharacter(event, id)} image={image}>
             <div className="name">
-                <span>Iron man</span>
+                <span>{name}</span>
             </div>
         </Container>
     )
