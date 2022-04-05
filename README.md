@@ -35,3 +35,5 @@ yarn dev
 # ou
 npm run dev
 ```
+
+* Aplicação online: https://marvel-app-loressl.vercel.app/
