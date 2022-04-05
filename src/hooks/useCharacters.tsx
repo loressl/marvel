@@ -1,14 +1,8 @@
 import { createContext, ReactNode, SyntheticEvent, useContext, useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { api } from "../services/api";
 import md5 from 'md5'
-
-// TODO: REPARAR NA QUANTIDADE QUE MANDA OFFSET E LIMIT PARA TRAZER MAIS
-// https://developer.marvel.com/docs#!/public/getComicsCharacterCollection_get_2
-// https://developer.marvel.com/documentation/authorization
-
-// TODO: PESQUISAR APENAS 1 TEM QUE TIRAR OFFSET E LIMIT
-// TODO: TROCAR AXIOS POR SSR
 
 interface Thumbnail {
     path: string
@@ -38,6 +32,7 @@ interface DetailCharacter {
     name: string
     description: string
     thumbnail: Thumbnail
+    totalComics: number
     comics: Comics[]
 }
 
@@ -52,6 +47,9 @@ interface CharacterContextData {
     handleSearchCharacter: (event: SyntheticEvent) => void
     search: string
     setSearch: Function
+    handleLoadMore: () => void
+    totalCharacter: number
+    handleLoadMoreCommics: () => void
 }
 
 const CharactersContext = createContext<CharacterContextData>({} as CharacterContextData)
@@ -78,15 +76,20 @@ export function CharactersProvider({children}: CharactersProviderProps) {
     const [characters, setCharacters] = useState<Character[]>([])
     const [saveListCharacters, setSaveListCharacters] = useState<Character[]>([])
     const [detailCharacter, setDetailCharacter] = useState<DetailCharacter>()
-    const [offset, setOffset] = useState(initialOffset)
+    const [offsetCharacter, setOffsetCharacter] = useState(initialOffset)
+    const [totalCharacter, setTotalCharacter] = useState(0)
 
     useEffect(() => {
         const loadCharacters = async () => {
-            await api.get('/characters', { params }).then((response) => {
-                const data = response.data.data.results
-                setCharacters(data)
-            }).catch((error) => console.log(error))
-            // TODO: COLOCAR UM TOAST PARA INDICAR Q DEU ERRADO
+            try {
+                await api.get('/characters', { params }).then((response) => {
+                    setTotalCharacter(response.data.data.total)
+                    const data = response.data.data.results
+                    setCharacters(data)
+                })
+            } catch (error) {
+                toast.error('Error loading data')
+            }
         }
         loadCharacters()
     }, [])
@@ -99,37 +102,78 @@ export function CharactersProvider({children}: CharactersProviderProps) {
     }, [search])
 
     const handleClickCharacter = async ( event: SyntheticEvent, id: number) => {
-        event.preventDefault()
-        const newParams = { ts, apikey: publicKey, hash }
-        const character = await api.get(`/characters/${id}`, 
-            {
-                params: newParams
-            }
-        ).then((response) => response.data.data.results[0])
-
-        const comics = await api.get(`/characters/${id}/comics`, { params: newParams }).then((response) => response.data.data.results)
-
-        setDetailCharacter({
-            ...detailCharacter,
-            id: character?.id,
-            description: character?.description,
-            name: character?.name,
-            thumbnail: character?.thumbnail,
-            comics: comics
-        })
-        navigate('/detail_character')        
+        try {
+            event.preventDefault()
+            const newParams = { ts, apikey: publicKey, hash }
+            const character = await api.get(`/characters/${id}`, 
+                {
+                    params: newParams
+                }
+            ).then((response) => response.data.data.results[0])
+    
+            var total= 0  
+            const comics = await api.get(`/characters/${id}/comics`, { params: newParams }).then((response) => {
+                total = response.data.data.total
+                return response.data.data.results
+            })
+            setDetailCharacter({
+                ...detailCharacter,
+                id: character?.id,
+                description: character?.description,
+                name: character?.name,
+                thumbnail: character?.thumbnail,
+                totalComics: total,
+                comics: comics,
+            })
+            navigate('/detail_character')   
+        } catch (error) {
+            toast.error('Error loading data')
+        }     
     }
 
     const handleSearchCharacter = async (event: SyntheticEvent) => {
-        event.preventDefault()
-        const newParams = {
-            ts, apikey: publicKey, hash, name: search
+        try {
+            event.preventDefault()
+            const newParams = {
+                ts, apikey: publicKey, hash, name: search
+            }
+            await api.get(`/characters`, { params: newParams })
+                .then((response) => {
+                    setSaveListCharacters(characters)
+                    setCharacters(response.data.data.results)
+                })
+        } catch (error) {
+            toast.error('Error loading data')
         }
-        await api.get(`/characters`, { params: newParams })
-            .then((response) => {
-                setSaveListCharacters(characters)
-                setCharacters(response.data.data.results)
-            })
+    }
+
+    const handleLoadMore = async () => {
+        try {
+            if (totalCharacter > offsetCharacter) {
+                const newParams = {...params, offset: offsetCharacter + 20 }
+                const moreCharacters = await api.get('/characters', {params: newParams}).then((response) => response.data.data.results)
+                setCharacters((preCharacters) => [...preCharacters, ...moreCharacters])
+                setOffsetCharacter(offsetCharacter + 20)
+            }
+        } catch (error) {
+            toast.error('Error loading data')
+        }
+    }
+
+    const handleLoadMoreCommics = async () => {
+        try {
+            if(detailCharacter && detailCharacter?.totalComics > detailCharacter?.comics.length) {
+                const offset = detailCharacter?.comics.length + 20 >= detailCharacter?.totalComics ? 
+                    (detailCharacter?.totalComics - detailCharacter?.comics.length):
+                    (detailCharacter?.comics.length + 20)
+                const newParams = { ts, apikey: publicKey, hash, offset }
+                const comics = await api.get(`/characters/${detailCharacter?.id}/comics`, { params: newParams }).then((response) => response.data.data.results)
+                const newArray = [...detailCharacter?.comics, ...comics]
+                setDetailCharacter({...detailCharacter, comics: newArray})
+            }  
+        } catch (error) {
+            toast.error('Error loading data')
+        }
     }
 
     return (
@@ -140,7 +184,10 @@ export function CharactersProvider({children}: CharactersProviderProps) {
                  detailCharacter, 
                  handleSearchCharacter,
                  search, 
-                 setSearch
+                 setSearch,
+                 handleLoadMore,
+                 totalCharacter,
+                 handleLoadMoreCommics
             }}
         >
             {children}

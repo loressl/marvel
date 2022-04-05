@@ -1,23 +1,12 @@
-import { useEffect, useRef } from 'react'
 import { Card } from '../../components/Card'
 import { Header } from '../../components/Header'
 import { useCharacters } from '../../hooks/useCharacters'
 import { Container } from './styles'
-import { IntersectingCirclesSpinner } from 'react-epic-spinners'
+import { Button } from '../../components/Button'
+import { Loading } from '../../components/Loading'
 
 export function Home () {
-    const { characters, handleClickCharacter } = useCharacters()
-    const bottomRef = useRef(null)
-
-    // useEffect(() => {
-    //     const { current } = bottomRef
-    //     const intersectionObserver = new IntersectionObserver(([entries]) => console.log(entries));
-
-    //     intersectionObserver.observe(current)
-
-    //     return () => intersectionObserver.disconnect(current)
-
-    // }, [bottomRef.current])
+    const { characters, handleClickCharacter, handleLoadMore, totalCharacter } = useCharacters()
 
     return (
         <Container>
@@ -27,6 +16,9 @@ export function Home () {
                     <div className='list-card'>
                         {characters.map((value) =>
                             <Card 
+                                cursor="pointer"
+                                maxWidth={20}
+                                height={20}
                                 key={value.id}
                                 id={value.id}
                                 onClickCharacter={handleClickCharacter}
@@ -35,17 +27,14 @@ export function Home () {
                             />
                         )}
                     </div>
-                    <div ref={bottomRef} />
+                    <div id="sentinel" />
+                    { totalCharacter > characters.length && 
+                        <div className='container-button'>
+                            <Button maxWidth={10} width={100} name='Load more' onClick={handleLoadMore}/>
+                        </div>
+                    }
                 </>
-            :
-                <div className='loading'>
-                    <IntersectingCirclesSpinner color='#ff0000' size={100} />
-                    <span>Loading...</span>
-                </div>
-            }
-            {/* <button>
-                Load more
-            </button> */}
+            :<Loading/>}
         </Container>
     )
 }
