@@ -62,7 +62,7 @@ export function SearchDetail () {
                 </div>
             </div>: 
             <div className='no_details'>
-                <span className='no_details_text'>No details</span>
+                <span className='no_details_text'>No details, do a search</span>
                 <img className='no_details_image' src={deapool} alt="no details"/>
             </div>}
         </Container>
