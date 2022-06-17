@@ -36,11 +36,11 @@ interface DetailCharacter {
     comics: Comics[]
 }
 
-interface CharactersProviderProps {
+export interface CharactersProviderProps {
     children: ReactNode
 }
 
-interface CharacterContextData {
+export interface CharacterContextData {
     characters: Character[]
     handleClickCharacter: (event: SyntheticEvent,id: number) => void
     detailCharacter?: DetailCharacter
@@ -52,7 +52,7 @@ interface CharacterContextData {
     handleLoadMoreCommics: () => void
 }
 
-const CharactersContext = createContext<CharacterContextData>({} as CharacterContextData)
+export const CharactersContext = createContext<CharacterContextData>({} as CharacterContextData)
 
 const limit = 20
 const initialOffset = 20
@@ -83,6 +83,7 @@ export function CharactersProvider({children}: CharactersProviderProps) {
         const loadCharacters = async () => {
             try {
                 await api.get('/characters', { params }).then((response) => {
+                    console.log(JSON.stringify(response))
                     setTotalCharacter(response.data.data.total)
                     const data = response.data.data.results
                     setCharacters(data)
@@ -99,6 +100,7 @@ export function CharactersProvider({children}: CharactersProviderProps) {
             setCharacters(saveListCharacters)
             setSaveListCharacters([])
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search])
 
     const handleClickCharacter = async ( event: SyntheticEvent, id: number) => {

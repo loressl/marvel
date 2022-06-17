@@ -1,10 +1,10 @@
 import { Container } from "./styles"
 import { ImSearch }  from 'react-icons/im'
-import { FormEvent, SyntheticEvent } from "react"
+import { ChangeEvent, SyntheticEvent } from "react"
 
-interface SearchFieldProps {
+export interface SearchFieldProps {
     search: string
-    onHandleChange: (event: FormEvent<HTMLInputElement>) => void
+    onHandleChange: (event: ChangeEvent<HTMLInputElement>) => void
     onSubmit: (event: SyntheticEvent) => void
 }
 
@@ -12,7 +12,8 @@ export const SearchField = ({search, onHandleChange, onSubmit}: SearchFieldProps
     return(
         <Container>
             <form className="search-input-field" onSubmit={(event: SyntheticEvent) => onSubmit(event)}>
-                <input 
+                <input
+                    data-testid='searchInput' 
                     type='text'
                     placeholder="Do your research..."
                     value={search}
