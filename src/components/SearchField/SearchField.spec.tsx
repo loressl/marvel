@@ -1,5 +1,10 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '../../test-utils/testing-library-utils'
 import { SearchField, SearchFieldProps } from '.'
+
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom') as any,
+    useNavigate: () => jest.fn()
+}))
 
 function renderSearchField(props: Partial<SearchFieldProps> = {}) {
     const defaultProps: SearchFieldProps = {

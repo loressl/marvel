@@ -1,14 +1,13 @@
-import { ChangeEvent } from "react"
 import { Container } from "./styles"
 import { SearchField } from "../SearchField"
 import { useCharacters } from "../../hooks/useCharacters"
 
 import marvelLogo from '../../assets/images/marvel.svg'
+//https://www.ksharifbd.com/blog/testing-react-custom-hook-how-to-mock-usecontext-value-with-jest/
 
+//https://kentcdodds.com/blog/how-to-test-custom-react-hooks
 export const Header = () => {
-    const { handleSearchCharacter, search, setSearch } = useCharacters()
-
-    const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) => setSearch(event.target.value)
+    const { handleSearchCharacter, search, handleChangeSearch } = useCharacters()
 
     return(
         <Container>
